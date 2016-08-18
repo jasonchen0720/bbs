@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--配置扫面类包-->
+    <context:component-scan base-package="com.jason.bbs.controller"/>
+    <!--配置spring注解驱动-->
+    <mvc:annotation-driven validator="beansValidator">
+        <!-- 消息转换器 -->
+        <mvc:message-converters register-defaults="true">
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes" value="text/html;charset=UTF-8"/>
+            </bean>
+            <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+                <property name="supportedMediaTypes" value="application/json;charset=UTF-8"/>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+    <!--配置视图解析器-->
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+
+    <bean class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor"/>
+
+    <bean id="beansValidator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+        <property name="validationMessageSource" ref="messageSource"/>
+    </bean>
+
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basename" value="classpath:ValidatorMessages"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+
+    <!--JSR303验证切面-->
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+    <bean id="jsrValidationAdvice" class="com.jason.bbs.common.JSRValidationAdvice"/>
+    <aop:config>
+        <aop:pointcut id="jsrValidate" expression="execution(public * com.jason.bbs.controller.*.*(..))"/>
+        <aop:aspect id="jsrValidationAspect" ref="jsrValidationAdvice">
+            <aop:around method="aroundMethod" pointcut-ref="jsrValidate"/>
+        </aop:aspect>
+    </aop:config>
+    <mvc:default-servlet-handler/>
+    <!-- 配置拦截器 -->
+    <mvc:interceptors>
+        <bean class="com.jason.bbs.common.interceptor.LoginInterceptor"/>
+    </mvc:interceptors>
+</beans>
