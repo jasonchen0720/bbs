@@ -1,6 +1,8 @@
 package com.jason.bbs.service.interf;
 
 
+import com.jason.bbs.pojo.bo.CommonBo;
+import com.jason.bbs.pojo.bo.IssueBo;
 import com.jason.bbs.pojo.entity.Issue;
 
 
@@ -11,7 +13,7 @@ import java.util.Map;
  */
 public interface IssueService {
 
-    Map<String,Object> getIssueList(String column);
-    Map<String,Object> saveIssue(Issue issue);
-    Map<String,Object> getIssue(Long issueId);
+    IssueBo getIssueList(String column);
+    IssueBo getIssue(Long issueId);
+    CommonBo saveIssue(Issue issue);
 }

@@ -1,11 +1,11 @@
 package com.jason.bbs.service.imp;
 
-import com.jason.bbs.common.SysConstant;
-import com.jason.bbs.common.SysEnum;
+import com.jason.bbs.common.SysEnum.ResultMsg;
 import com.jason.bbs.dao.interf.CommentDao;
 import com.jason.bbs.dao.interf.ReplyDao;
-import com.jason.bbs.error.BaseSystemException;
-import com.jason.bbs.error.BbsErrorEnum;
+import com.jason.bbs.exception.BaseSystemException;
+import com.jason.bbs.exception.BbsErrorEnum;
+import com.jason.bbs.pojo.bo.CommonBo;
 import com.jason.bbs.pojo.entity.Comment;
 import com.jason.bbs.pojo.entity.Reply;
 import com.jason.bbs.service.interf.ReplyService;
@@ -34,7 +34,7 @@ public class ReplyServiceImp implements ReplyService {
 
     @Transactional
     @Override
-    public Map<String, Object> saveReply(Reply reply) {
+    public CommonBo saveReply(Reply reply) {
         if (reply == null || reply.getComment() == null || reply.getComment().getCommentId() == null) {
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         }
@@ -44,16 +44,13 @@ public class ReplyServiceImp implements ReplyService {
             reply = (Reply) replyDao.save(reply);
             if (reply != null) {
                 log.info("保存回复成功");
-                map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
+                return CommonBo.success().message(ResultMsg.REPLY_SAVE_OK.getMsg());
             }else{
-                map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
-                map.put(SysConstant.RESP_MSG,SysEnum.ResultMsg.REPLY_SAVE_EEROR);
+                return CommonBo.fail().message(ResultMsg.REPLY_SAVE_EEROR.getMsg());
             }
         } else {
             log.error("评论不存在或已被删除");
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
-            map.put(SysConstant.RESP_MSG,SysEnum.ResultMsg.COMMENT_NOT_FOUND);
+            return CommonBo.fail().message(ResultMsg.COMMENT_NOT_FOUND.getMsg());
         }
-        return map;
     }
 }

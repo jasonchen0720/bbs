@@ -1,10 +1,11 @@
 package com.jason.bbs.service.imp;
 
-import com.jason.bbs.common.SysConstant;
-import com.jason.bbs.common.SysEnum;
+import com.jason.bbs.common.SysEnum.ResultMsg;
 import com.jason.bbs.dao.interf.IssueDao;
-import com.jason.bbs.error.BaseSystemException;
-import com.jason.bbs.error.BbsErrorEnum;
+import com.jason.bbs.exception.BaseSystemException;
+import com.jason.bbs.exception.BbsErrorEnum;
+import com.jason.bbs.pojo.bo.CommonBo;
+import com.jason.bbs.pojo.bo.IssueBo;
 import com.jason.bbs.pojo.entity.Comment;
 import com.jason.bbs.pojo.entity.Issue;
 import com.jason.bbs.service.interf.IssueService;
@@ -13,11 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Created by jason on 2016/8/11.
@@ -32,56 +32,50 @@ public class IssueServiceImp implements IssueService {
 
     @Transactional
     @Override
-    public Map<String, Object> getIssueList(String column) {
-        if (column == null || column.isEmpty())
+    public IssueBo getIssueList(String column) {
+        if (column == null || column.isEmpty()) {
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
+        }
         Map<String, Object> map = new HashMap<>();
         map.put("columnBelong", column);
         List<Issue> issues = issueDao.query(Issue.class, map, -1, -1);
         if (issues != null) {
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
-            map.put(SysConstant.RESP_DATA, issues);
             log.info("获取主题列表成功");
+            return (IssueBo) IssueBo.success(issues).message(ResultMsg.ISSUE_LOAD_OK.getMsg());
         } else {
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
+            return (IssueBo) IssueBo.success(issues).message(ResultMsg.ISSUE_LOAD_ERROR.getMsg());
         }
-        return map;
     }
 
     @Transactional
     @Override
-    public Map<String, Object> saveIssue(Issue issue) {
-        if (issue == null)
-            throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
-        Map<String, Object> map = new HashMap<>();
-        issue = (Issue) issueDao.save(issue);
-        if (issue != null) {
-            log.info("保存帖子成功");
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
-        } else {
-            log.info("保存帖子失败");
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
-        }
-        return map;
-    }
-
-    @Transactional
-    @Override
-    public Map<String, Object> getIssue(Long issueId) {
+    public IssueBo getIssue(Long issueId) {
         if (issueId == null)
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         Map<String, Object> map = new HashMap<>();
         Issue issue = (Issue) issueDao.get(Issue.class, issueId);
         if (issue == null) {
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
-            map.put(SysConstant.RESP_MSG, SysEnum.ResultMsg.ISSUE_NOT_FOUND.getMsg());
+            return (IssueBo) IssueBo.fail(null).message(ResultMsg.ISSUE_NOT_FOUND.getMsg());
         } else {
             log.info("获取到帖子细节");
             List<Comment> commentList = issue.getComments();
             commentList.forEach(comment -> comment.getReplies());
-            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
-            map.put(SysConstant.RESP_DATA, issue);
+            List<Issue> issues = new ArrayList<>();
+            issues.add(issue);
+            return (IssueBo) IssueBo.success(issues).message(ResultMsg.ISSUE_GET_OK.getMsg());
         }
-        return map;
+    }
+
+    @Transactional
+    @Override
+    public CommonBo saveIssue(Issue issue) {
+        if (issue == null)
+            throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
+        issue = (Issue) issueDao.save(issue);
+        if (issue != null) {
+            return CommonBo.success().message(ResultMsg.ISSUE_SAVE_OK.getMsg());
+        } else {
+            return CommonBo.fail().message(ResultMsg.ISSUE_SAVE_ERROR.getMsg());
+        }
     }
 }

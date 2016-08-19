@@ -49,12 +49,12 @@ public class BbsTest extends AbstractTestNGSpringContextTests {
         list.forEach(user -> System.out.println("已经查询到用户，用户ID为：" + user.getUserId()));
     }
 
-    @Test
+    /*@Test
     public void testValidateUserName() {
         Map<String, Object> map = userService.validateUserName("jasonchen");
         System.out.println("jasonchen:" + map.get(SysConstant.RESP_MSG));
         Assert.assertEquals(map.get(SysConstant.RESP_CODE), SysEnum.ResultCode.ERROR.getCode());
-    }
+    }*/
 
     @Test
     public void testDelete() {

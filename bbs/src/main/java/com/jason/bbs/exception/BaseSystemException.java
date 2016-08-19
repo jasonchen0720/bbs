@@ -1,4 +1,4 @@
-package com.jason.bbs.error;
+package com.jason.bbs.exception;
 
 /**
  * Created by jason on 2016/8/15.

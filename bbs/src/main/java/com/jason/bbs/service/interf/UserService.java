@@ -1,6 +1,8 @@
 package com.jason.bbs.service.interf;
 
 
+import com.jason.bbs.pojo.bo.CommonBo;
+import com.jason.bbs.pojo.bo.UserBo;
 import com.jason.bbs.pojo.entity.User;
 
 import java.util.Map;
@@ -10,16 +12,12 @@ import java.util.Map;
  */
 public interface UserService {
 
-//    Boolean isOccupied(String field,String value);
+    CommonBo userSave(User user);
 
-    User register(User user);
+    UserBo userLogin(User user);
 
-    Map<String, Object> userSave(User user);
+    Boolean validateUserEmail(String email);
 
-    Map<String, Object> userLogin(User user);
-
-    Map<String, Object> validateUserEmail(String email);
-
-    Map<String, Object> validateUserName(String username);
+    Boolean validateUserName(String username);
 
 }

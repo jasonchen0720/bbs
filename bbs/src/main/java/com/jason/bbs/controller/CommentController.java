@@ -1,11 +1,9 @@
 package com.jason.bbs.controller;
 
 import com.jason.bbs.common.SysConstant;
-import com.jason.bbs.common.SysEnum;
-import com.jason.bbs.common.util.JsonUtil;
-import com.jason.bbs.error.BaseSystemException;
-import com.jason.bbs.error.BbsErrorEnum;
+import com.jason.bbs.exception.BaseSystemException;
 import com.jason.bbs.form.CommentPublishForm;
+import com.jason.bbs.pojo.bo.CommonBo;
 import com.jason.bbs.pojo.vo.ResponseModel;
 import com.jason.bbs.pojo.vo.UserVo;
 import com.jason.bbs.service.interf.CommentService;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Map;
 
 /**
  * Created by jason on 2016/8/12.
@@ -42,12 +39,12 @@ public class CommentController {
         }
         UserVo author = (UserVo) request.getSession().getAttribute(SysConstant.CURRENT_USER);
         try {
-            Map<String, Object> resMap = commentService.saveComment(commentPublishForm.asComment(author, commentPublishForm.getIssueId()));
-            if (SysEnum.ResultCode.OK.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                return ResponseModel.ok().message("评论成功！");
+            CommonBo commonBo = commentService.saveComment(commentPublishForm.asComment(author, commentPublishForm.getIssueId()));
+            if (commonBo.isSuccess()) {
+                return ResponseModel.ok().message(commonBo.getMessage());
             } else {
-                log.error(resMap.get(SysConstant.RESP_MSG).toString());
-                return ResponseModel.error().message(resMap.get(SysConstant.RESP_MSG).toString());
+                log.error(commonBo.getMessage());
+                return ResponseModel.error().message(commonBo.getMessage());
             }
         } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());

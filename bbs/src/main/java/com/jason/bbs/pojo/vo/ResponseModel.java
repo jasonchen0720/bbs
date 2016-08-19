@@ -34,11 +34,11 @@ public class ResponseModel /*implements Serializable*/{
 
     }
 
-    public static ResponseModel ok() {
+    public static final ResponseModel ok() {
         return new ResponseModel(0);
     }
 
-    public static ResponseModel error() {
+    public static final ResponseModel error() {
         return new ResponseModel(-1);
     }
 

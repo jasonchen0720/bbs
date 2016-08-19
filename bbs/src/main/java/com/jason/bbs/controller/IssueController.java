@@ -1,10 +1,9 @@
 package com.jason.bbs.controller;
 
 import com.jason.bbs.common.SysConstant;
-import com.jason.bbs.common.SysEnum;
-import com.jason.bbs.error.BaseSystemException;
-import com.jason.bbs.error.BbsErrorEnum;
-import com.jason.bbs.pojo.entity.Issue;
+import com.jason.bbs.exception.BaseSystemException;
+import com.jason.bbs.pojo.bo.CommonBo;
+import com.jason.bbs.pojo.bo.IssueBo;
 import com.jason.bbs.form.IssuePublishForm;
 import com.jason.bbs.pojo.vo.ResponseModel;
 import com.jason.bbs.pojo.vo.UserVo;
@@ -18,9 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jason on 2016/8/11.
@@ -43,28 +39,27 @@ public class IssueController {
             return ResponseModel.error().message("用户发帖表单验证异常");
         }
         UserVo creator = (UserVo) request.getSession().getAttribute(SysConstant.CURRENT_USER);
-        Map<String, Object> resMap = issueService.saveIssue(issuePublishForm.asIssue(creator));
-        if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-            return ResponseModel.error().message("发帖失败");
-        } else {
+        CommonBo commonBo = issueService.saveIssue(issuePublishForm.asIssue(creator));
+        if (commonBo.isSuccess()) {
             return ResponseModel.ok().message("发帖成功");
+        } else {
+            return ResponseModel.error().message("发帖失败");
         }
     }
 
     @RequestMapping(value = "/issues/{columnBelong}")
     public String showIssues(@PathVariable("columnBelong") String columnBelong, Model model) {
         try {
-            Map<String, Object> resMap = issueService.getIssueList(columnBelong);
-            if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
+           IssueBo issueBo = issueService.getIssueList(columnBelong);
+            if (issueBo.isSuccess()) {
+                log.info("加载主题列表成功");
+                model.addAttribute("columnBelong", columnBelong);
+                model.addAttribute("issues", issueBo.getIssues());
+                return "issue/issueList";
+            } else {
                 log.info("加载主题列表异常");
                 model.addAttribute("data", ResponseModel.error().message("加载主题列表异常"));
                 return "result/error";
-            } else {
-                log.info("加载主题列表成功");
-                List<Issue> issues = (List<Issue>) resMap.get(SysConstant.RESP_DATA);
-                model.addAttribute("columnBelong", columnBelong);
-                model.addAttribute("issues", issues);
-                return "issue/issueList";
             }
         } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());
@@ -81,15 +76,13 @@ public class IssueController {
     public String showIssueDetail(@PathVariable("issueId") Long issueId, Model model) {
         log.info("显示帖子详情");
         try {
-            Map<String, Object> resMap = issueService.getIssue(issueId);
-            log.info("resp code:" + resMap.get(SysConstant.RESP_CODE).toString());
-            if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                model.addAttribute("data", ResponseModel.error().message(resMap.get(SysConstant.RESP_MSG).toString()));
-                return "result/error";
-            } else {
-                Issue issue = (Issue) resMap.get(SysConstant.RESP_DATA);
-                model.addAttribute("issue", issue);
+            IssueBo issueBo = issueService.getIssue(issueId);
+            if (issueBo.isSuccess()) {
+                model.addAttribute("issue", issueBo.getIssues().get(0));
                 return "issue/issueDetail";
+            } else {
+                model.addAttribute("data", ResponseModel.error().message(issueBo.getMessage()));
+                return "result/error";
             }
         } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());

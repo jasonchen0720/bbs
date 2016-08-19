@@ -1,5 +1,6 @@
 package com.jason.bbs.service.interf;
 
+import com.jason.bbs.pojo.bo.CommonBo;
 import com.jason.bbs.pojo.entity.Reply;
 
 import java.util.Map;
@@ -9,6 +10,6 @@ import java.util.Map;
  */
 public interface ReplyService {
 
-    Map<String,Object> saveReply(Reply reply);
+    CommonBo saveReply(Reply reply);
 
 }
