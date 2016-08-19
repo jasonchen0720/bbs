@@ -2,6 +2,7 @@ package com.jason.bbs.form;
 
 import com.jason.bbs.common.util.MD5Util;
 import com.jason.bbs.pojo.entity.User;
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.Pattern;
@@ -14,6 +15,7 @@ import java.util.UUID;
 public class UserRegisterForm {
     @NotBlank(message = "{bbs.user.email.null}")
     @Pattern(regexp = "^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$", message = "{bbs.register.email.format.error}")
+    @Email
     private String email;
 
     @Size(min = 1, max = 10, message = "{bbs.user.username.size.error}")

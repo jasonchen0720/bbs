@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public interface UserService {
 
-    Boolean isOccupied(String field,String value);
+//    Boolean isOccupied(String field,String value);
 
     User register(User user);
 

@@ -33,31 +33,30 @@ public class CommentController {
     private CommentService commentService;
 
     @ResponseBody
-    @RequestMapping(value = "/publishComment")
-    public String publishComment(@Valid CommentPublishForm commentPublishForm, BindingResult bindingResult, HttpServletRequest req) {
+    @RequestMapping(value = "/publish")
+    public ResponseModel publishComment(@Valid CommentPublishForm commentPublishForm, BindingResult bindingResult,
+                                        HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
             log.error("评论表单验证异常：" + bindingResult.getAllErrors().stream().findFirst().toString());
-            return JsonUtil.objectToJsonStr(new ResponseModel(-1, "发表评论参数异常"));
+            return ResponseModel.error().message("发表评论参数异常");
         }
-        UserVo author = (UserVo) req.getSession().getAttribute(SysConstant.CURRENT_USER);
-        try{
+        UserVo author = (UserVo) request.getSession().getAttribute(SysConstant.CURRENT_USER);
+        try {
             Map<String, Object> resMap = commentService.saveComment(commentPublishForm.asComment(author, commentPublishForm.getIssueId()));
             if (SysEnum.ResultCode.OK.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(0,"评论成功"));
+                return ResponseModel.ok().message("评论成功！");
             } else {
                 log.error(resMap.get(SysConstant.RESP_MSG).toString());
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1,resMap.get(SysConstant.RESP_MSG).toString()));
+                return ResponseModel.error().message(resMap.get(SysConstant.RESP_MSG).toString());
             }
-        }catch (BaseSystemException e){
+        } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "评论参数为空"));
+            return ResponseModel.error().message(e.getErrorMessage());
 
-            } else {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "系统错误"));
-            }
-
+        } catch (Exception e) {
+            return ResponseModel.error().message(e.getMessage());
         }
 
     }
+
 }

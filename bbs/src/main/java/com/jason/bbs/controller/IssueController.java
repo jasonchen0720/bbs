@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -32,41 +33,21 @@ public class IssueController {
     @Autowired
     private IssueService issueService;
 
-    @RequestMapping(value = "/toPublish/{columnBelong}")
-    public String toPublish(@PathVariable("columnBelong") String columnBelong, Model model) {
 
-        model.addAttribute("columnBelong", columnBelong);
-        return "issue/issuePublish";
-
-    }
-
-    @RequestMapping(value = "/publish",method = RequestMethod.POST)
-    public String publishIssue(@Valid IssuePublishForm issuePublishForm, BindingResult bindingResult, Model model, HttpServletRequest req) {
+    @ResponseBody
+    @RequestMapping(value = "/publish", method = RequestMethod.GET)
+    public ResponseModel publishIssue(@Valid IssuePublishForm issuePublishForm, BindingResult bindingResult, HttpServletRequest request) {
         log.info("开始发帖子了");
         if (bindingResult.hasErrors()) {
             log.error("用户发帖表单验证异常：" + bindingResult.getAllErrors().stream().findFirst().toString());
-            model.addAttribute("data", new ResponseModel(-1, "发帖参数异常"));
-            return "result/error";
+            return ResponseModel.error().message("用户发帖表单验证异常");
         }
-        UserVo creator = (UserVo) req.getSession().getAttribute(SysConstant.CURRENT_USER);
+        UserVo creator = (UserVo) request.getSession().getAttribute(SysConstant.CURRENT_USER);
         Map<String, Object> resMap = issueService.saveIssue(issuePublishForm.asIssue(creator));
         if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-
-            model.addAttribute("data", new ResponseModel(-1, "发帖失败"));
-            return "result/error";
+            return ResponseModel.error().message("发帖失败");
         } else {
-            resMap = issueService.getIssueList(issuePublishForm.getColumnBelong());
-            if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                log.info("添加主题后，重新加载主题列表异常");
-                model.addAttribute("data", new ResponseModel(-1, "请刷新列表"));
-                return "result/error";
-            } else {
-                log.info("添加主题后，加载主题列表成功");
-                List<Issue> issues = (List<Issue>) resMap.get(SysConstant.RESP_DATA);
-                model.addAttribute("columnBelong", issuePublishForm.getColumnBelong());
-                model.addAttribute("issues",issues);
-                return "issue/issueList";
-            }
+            return ResponseModel.ok().message("发帖成功");
         }
     }
 
@@ -76,7 +57,7 @@ public class IssueController {
             Map<String, Object> resMap = issueService.getIssueList(columnBelong);
             if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
                 log.info("加载主题列表异常");
-                model.addAttribute("data", new ResponseModel(-1, "加载主题列表异常，请重试"));
+                model.addAttribute("data", ResponseModel.error().message("加载主题列表异常"));
                 return "result/error";
             } else {
                 log.info("加载主题列表成功");
@@ -87,24 +68,23 @@ public class IssueController {
             }
         } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                model.addAttribute("data", new ResponseModel(-1, "栏目参数为空"));
-                return "result/error";
-            } else {
-                model.addAttribute("data", new ResponseModel(-1, "系统错误"));
-                return "result/error";
-            }
+            model.addAttribute("data", ResponseModel.error().message(e.getErrorMessage()));
+            return "result/error";
+        } catch (Exception e) {
+            model.addAttribute("data", ResponseModel.error().message(e.getMessage()));
+            return "result/error";
         }
     }
 
+
     @RequestMapping(value = "/issueDetail/{issueId}", method = RequestMethod.GET)
-    public String showIssueDetail(@PathVariable("issueId") Long issueId, Model model, HttpServletRequest req) {
+    public String showIssueDetail(@PathVariable("issueId") Long issueId, Model model) {
         log.info("显示帖子详情");
         try {
             Map<String, Object> resMap = issueService.getIssue(issueId);
             log.info("resp code:" + resMap.get(SysConstant.RESP_CODE).toString());
             if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                model.addAttribute("data", new ResponseModel(-1, resMap.get(SysConstant.RESP_MSG).toString()));
+                model.addAttribute("data", ResponseModel.error().message(resMap.get(SysConstant.RESP_MSG).toString()));
                 return "result/error";
             } else {
                 Issue issue = (Issue) resMap.get(SysConstant.RESP_DATA);
@@ -113,14 +93,12 @@ public class IssueController {
             }
         } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                model.addAttribute("data", new ResponseModel(-1, "帖子id参数为空"));
-                return "result/error";
-            } else {
-                model.addAttribute("data", new ResponseModel(-1, "系统错误"));
-                return "result/error";
-            }
+            model.addAttribute("data", ResponseModel.error().message(e.getErrorMessage()));
+            return "result/error";
+        } catch (Exception e) {
+            model.addAttribute("data", ResponseModel.error().message(e.getMessage()));
+            return "result/error";
         }
     }
-
 }
+

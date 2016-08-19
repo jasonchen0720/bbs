@@ -33,27 +33,25 @@ public class ReplyController {
 
     @ResponseBody
     @RequestMapping(value = "sendReply")
-    public String reply(@Valid ReplySendForm replySendForm, BindingResult bindingResult, HttpServletRequest req) {
+    public ResponseModel reply(@Valid ReplySendForm replySendForm, BindingResult bindingResult, HttpServletRequest request) {
         log.info(replySendForm.getCommentId() + "---" + replySendForm.getReplyContent());
         if (bindingResult.hasErrors()) {
             log.error("用户发帖表单验证异常：" + bindingResult.getAllErrors().stream().findFirst().toString());
-            return JsonUtil.objectToJsonStr(new ResponseModel(-1, "回复参数异常"));
+            return ResponseModel.error().message("回复参数异常");
         }
-        UserVo replier = (UserVo) req.getSession().getAttribute(SysConstant.CURRENT_USER);
+        UserVo replier = (UserVo) request.getSession().getAttribute(SysConstant.CURRENT_USER);
         try {
             Map<String, Object> resMap = replyService.saveReply(replySendForm.asReply(replier, replySendForm.getCommentId()));
             if ("0".equals(resMap.get(SysConstant.RESP_CODE))) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(0, "回复成功"));
+                return ResponseModel.ok().message("回复成功！");
             } else {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, resMap.get(SysConstant.RESP_MSG).toString()));
+                return ResponseModel.error().message(resMap.get(SysConstant.RESP_MSG).toString());
             }
         } catch (BaseSystemException e) {
             log.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "回复参数为空"));
-            } else {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "系统错误"));
-            }
+            return ResponseModel.error().message(e.getErrorMessage());
+        } catch (Exception e) {
+            return ResponseModel.error().message(e.getMessage());
         }
     }
 }

@@ -29,7 +29,6 @@
         <property name="suffix" value=".jsp"/>
     </bean>
 
-
     <bean class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor"/>
 
     <bean id="beansValidator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">

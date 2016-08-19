@@ -114,18 +114,16 @@
         function publishComment() {
             var sendData = $("#comment-publish form").serialize();
             var options = {
-                url: '/comment/publishComment',
+                url: '/comment/publish',
                 type: 'get',
                 dataType: 'json',
                 data: sendData,
                 success: function (data) {
-                    var response = JSON.parse(data);
-                    if (response.code == 0) {
+                    if (data.code == 0) {
                         window.location.href = "/issue/issueDetail/${issue.issueId}";
-                        alert(response.message);
+                        alert(data.message);
                     } else {
-
-                        alert(response.message);
+                        alert(data.message);
                     }
 
                 }
@@ -141,17 +139,12 @@
                 dataType: 'json',
                 data: sendData,
                 success: function (data) {
-                    var response = JSON.parse(data);
-                    if (response.code == 0) {
-                        window.location.href = "/issue/issueDetail/${issue.issueId}";
-                        alert(response.message);
-                    } else if (response.code == -1) {
-                        window.location.href = "/issue/issueDetail/${issue.issueId}";
-                        alert(response.message);
+                    if (data.code == 0) {
+                        alert(data.message);
                     } else {
-                        window.location.href = "/issue/issueDetail/${issue.issueId}";
-                        alert(response.message);
+                        alert(data.message);
                     }
+                    window.location.href = "/issue/issueDetail/${issue.issueId}";
                 }
             };
             $.ajax(options);
@@ -168,8 +161,6 @@
                 $("#" + replyDivId + " form input[name=replyToId]").val("");
                 $("#" + replyDivId + " form input[name=replyToName]").val("");
             }
-            //$("div.replyBoxClose").css("display", "none");
-            //$("#" + replyDivId).css("display", "block");
         }
     </script>
 </head>

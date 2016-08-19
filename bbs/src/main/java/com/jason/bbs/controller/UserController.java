@@ -40,12 +40,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @ResponseBody
-    @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public AjaxResponse test() {
-        return AjaxResponse.ok().msg("这是返回消息");
-    }
-
     /**
      * 进入主页
      */
@@ -89,45 +83,12 @@ public class UserController {
 
         UserVo userVo = (UserVo) request.getSession().getAttribute(SysConstant.CURRENT_USER);
         if (null == userVo) {
-            model.addAttribute("data", new ResponseModel(-1,"未登录或登录超时"));
+            model.addAttribute("data", new ResponseModel(-1, "未登录或登录超时"));
             return "user/login";
         } else {
-            //model.addAttribute("user", userVo);
+            model.addAttribute("user", userVo);
         }
         return "user/userInfo";
-    }
-
-    /**
-     * 处理注册操作
-     */
-    @ResponseBody
-    @RequestMapping(value = "/register", method = RequestMethod.POST, produces = "application/json; charset=utf-8")
-    public String register(@Valid UserRegisterForm userRegisterForm, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            logger.error("用户注册表单验证异常：" + bindingResult.getAllErrors().stream().findFirst().toString());
-            return JsonUtil.objectToJsonStr(new ResponseModel(-1, "注册参数异常，请重新注册"));
-        }
-        try {
-            Map<String, Object> resMap = userService.userSave(userRegisterForm.asUser());
-            if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                logger.error("注册失败");
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "注册失败,请重新注册"));
-            } else {
-                logger.info("注册成功");
-                return JsonUtil.objectToJsonStr(new ResponseModel(0, "注册成功"));
-            }
-        } catch (BaseSystemException e) {
-            logger.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_NAME_EXISTED.getMessage().equals(e.getErrorMessage())) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "昵称已经被使用，请重新注册"));
-            } else if (BbsErrorEnum.BBS_EMAIL_EXISTED.getMessage().equals(e.getErrorMessage())) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "邮箱已经被注册，请重新注册"));
-            } else if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "注册参数为空，请重新注册"));
-            } else {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "系统错误，请重试"));
-            }
-        }
     }
 
     /**
@@ -137,32 +98,56 @@ public class UserController {
     public String login(@Valid UserLoginForm userLoginForm, BindingResult bindingResult, Model model, HttpServletRequest req) {
         if (bindingResult.hasErrors()) {
             logger.error("用户登录参数校验异常:" + bindingResult.getAllErrors().stream().findFirst().toString());
-            return JsonUtil.objectToJsonStr(new ResponseModel(-1, "注册参数异常"));
+            model.addAttribute("data", ResponseModel.error().message("注册参数异常"));
+            return "user/login";
         }
         try {
             Map<String, Object> resMap = userService.userLogin(userLoginForm.asUser());
             if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                logger.error("登录失败");
-                if (SysEnum.ResultMsg.USER_NOT_FOUND.getMsg().equals(resMap.get(SysConstant.RESP_MSG))) {
-                    model.addAttribute("data", new ResponseModel(-1, "登录失败"));
-                }
+                logger.error(resMap.get(SysConstant.RESP_MSG).toString());
+                model.addAttribute("data", ResponseModel.error().message(resMap.get(SysConstant.RESP_MSG).toString()));
                 return "user/login";
             } else {
                 logger.info("登录成功");
-                UserVo userVo = new UserVo((User)resMap.get(SysConstant.RESP_DATA));
+                UserVo userVo = new UserVo((User) resMap.get(SysConstant.RESP_DATA));
                 req.getSession().setMaxInactiveInterval(1200);
                 req.getSession().setAttribute(SysConstant.CURRENT_USER, userVo);
                 return "main";
             }
         } catch (BaseSystemException e) {
             logger.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                model.addAttribute("data",new ResponseModel(-1, "登录参数为空"));
-                return "user/login";
+            model.addAttribute("data", ResponseModel.error().message(e.getErrorMessage()));
+            return "user/login";
+        } catch (Exception e) {
+            model.addAttribute("data", ResponseModel.error().message(e.getMessage()));
+            return "user/login";
+        }
+    }
+
+    /**
+     * 处理注册操作
+     */
+    @ResponseBody
+    @RequestMapping(value = "/register", method = RequestMethod.POST, produces = "application/json; charset=utf-8")
+    public ResponseModel register(@Valid UserRegisterForm userRegisterForm, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            logger.error("用户注册表单验证异常：" + bindingResult.getAllErrors().stream().findFirst().toString());
+            return ResponseModel.error().message("用户注册表单验证异常");
+        }
+        try {
+            Map<String, Object> resMap = userService.userSave(userRegisterForm.asUser());
+            if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
+                logger.error("注册失败");
+                return ResponseModel.ok().message("注册失败,请重新注册");
             } else {
-                model.addAttribute("data",new ResponseModel(-1, "系统错误"));
-                return "user/login";
+                logger.info("注册成功");
+                return ResponseModel.ok().message("注册成功");
             }
+        } catch (BaseSystemException e) {
+            logger.error(e.getErrorMessage());
+            return ResponseModel.error().message(e.getErrorMessage());
+        } catch (Exception e) {
+            return ResponseModel.error().message(e.getMessage());
         }
     }
 
@@ -171,44 +156,43 @@ public class UserController {
      */
     @ResponseBody
     @RequestMapping(value = "/validateEmail", produces = "application/json;charset=UTF-8")
-    public String validateUserEmail(@RequestParam(value = "email", required = true, defaultValue = "") String email) {
-       try{
-           Map<String, Object> resMap = userService.validateUserEmail(email);
-           if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-               return JsonUtil.objectToJsonStr(new ResponseModel(-1, "邮箱已经被注册"));
-           } else {
-               return JsonUtil.objectToJsonStr(new ResponseModel(0, "邮箱有效"));
-           }
-       }catch (BaseSystemException e){
-           logger.error(e.getErrorMessage());
-           if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-               return JsonUtil.objectToJsonStr(new ResponseModel(-1, "验证邮箱参数为空"));
-           } else {
-               return JsonUtil.objectToJsonStr(new ResponseModel(-1, "系统错误"));
-           }
-       }
+    public ResponseModel validateUserEmail(@RequestParam(value = "email", defaultValue = "") String email) {
+        try {
+            Map<String, Object> resMap = userService.validateUserEmail(email);
+            if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
+                return ResponseModel.error().message("邮箱已经被注册");
+            } else {
+                return ResponseModel.ok();
+            }
+        } catch (BaseSystemException e) {
+            logger.error(e.getErrorMessage());
+            return ResponseModel.error().message(e.getErrorMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseModel.error().message(e.getMessage());
+        }
     }
+
 
     /**
      * 用户名校验
      */
     @ResponseBody
     @RequestMapping(value = "/validateName", produces = "application/json;charset=UTF-8")
-    public String validateUserName(@RequestParam(value = "username", required = true, defaultValue = "") String username) {
-        try{
+    public ResponseModel validateUserName(@RequestParam(value = "username", defaultValue = "") String username) {
+        try {
             Map<String, Object> resMap = userService.validateUserName(username);
             if (SysEnum.ResultCode.ERROR.getCode().equals(resMap.get(SysConstant.RESP_CODE))) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "昵称已经被使用"));
+                return ResponseModel.error().message("昵称已经被使用");
             } else {
-                return JsonUtil.objectToJsonStr(new ResponseModel(0, "昵称有效"));
+                return ResponseModel.ok();
             }
-        }catch (BaseSystemException e){
+        } catch (BaseSystemException e) {
             logger.error(e.getErrorMessage());
-            if (BbsErrorEnum.BBS_PARAM_NULL.getMessage().equals(e.getErrorMessage())) {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "验证昵称参数为空"));
-            } else {
-                return JsonUtil.objectToJsonStr(new ResponseModel(-1, "系统错误"));
-            }
+            return ResponseModel.error().message(e.getErrorMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseModel.error().message(e.getMessage());
         }
     }
 }

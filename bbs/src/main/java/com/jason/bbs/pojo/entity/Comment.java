@@ -34,7 +34,7 @@ public class Comment {
     @JoinColumn(name = "issue_id")
     private Issue issue;
 
-    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Reply> replies;
 
     public Long getCommentId() {

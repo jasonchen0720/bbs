@@ -35,22 +35,14 @@ public class CommentPublishForm {
         this.issueId = issueId;
     }
 
-    public Comment asComment(UserVo author, Long issueId){
-
+    public Comment asComment(UserVo author, Long issueId) {
         Comment comment = new Comment();
-
         Issue issue = new Issue();
-
         issue.setIssueId(issueId);
-
         comment.setAuthorId(author.getUserId());
-
         comment.setAuthorName(author.getUsername());
-
         comment.setCommentContent(this.commentContent);
-
         comment.setIssue(issue);
-
         return comment;
 
     }

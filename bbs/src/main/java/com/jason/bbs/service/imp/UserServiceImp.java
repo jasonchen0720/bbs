@@ -26,9 +26,8 @@ public class UserServiceImp implements UserService {
     @Autowired
     private UserDao userDao;
 
-    @Override
-    public Boolean isOccupied(String field, String value) {
-        if (value==null||value.isEmpty()||field==null||field.isEmpty())
+    private Boolean isOccupied(String field, String value) {
+        if (value == null || value.isEmpty() || field == null || field.isEmpty())
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         return userDao.getByField(User.class, field, value) != null;
     }
@@ -49,13 +48,13 @@ public class UserServiceImp implements UserService {
 
     @Transactional
     public Map<String, Object> userSave(User user) {
-        if (user == null){
+        if (user == null) {
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         }
-        if (this.isOccupied("email", user.getEmail())){
+        if (this.isOccupied("email", user.getEmail())) {
             throw new BaseSystemException(BbsErrorEnum.BBS_EMAIL_EXISTED);
         }
-        if (this.isOccupied("username", user.getUsername())){
+        if (this.isOccupied("username", user.getUsername())) {
             throw new BaseSystemException(BbsErrorEnum.BBS_NAME_EXISTED);
         }
         Map<String, Object> map = new HashMap<>();
@@ -71,7 +70,7 @@ public class UserServiceImp implements UserService {
 
     @Transactional
     public Map<String, Object> userLogin(User user) {
-        if (user == null){
+        if (user == null) {
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         }
         Map<String, Object> map = new HashMap<>();
@@ -95,7 +94,7 @@ public class UserServiceImp implements UserService {
 
     @Transactional
     public Map<String, Object> validateUserEmail(String email) {
-        if (email == null|| email.isEmpty())
+        if (email == null || email.isEmpty())
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         Map<String, Object> map = new HashMap<>();
         User user = (User) userDao.getByField(User.class, "email", email);
@@ -118,6 +117,7 @@ public class UserServiceImp implements UserService {
         if (user != null) {
             log.info("昵称已经被使用！");
             map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
+            map.put(SysConstant.RESP_MSG, "邮箱已经被注册");
         } else {
             map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
         }

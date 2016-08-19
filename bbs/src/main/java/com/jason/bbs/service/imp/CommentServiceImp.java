@@ -38,19 +38,19 @@ public class CommentServiceImp implements CommentService {
             throw new BaseSystemException(BbsErrorEnum.BBS_PARAM_NULL);
         Map<String, Object> map = new HashMap<>();
         Issue issue = (Issue) issueDao.get(Issue.class, comment.getIssue().getIssueId());
-        if(issue != null){
+        if (issue != null) {
             comment.setIssue(issue);
             comment = (Comment) commentDao.save(comment);
             if (comment != null) {
                 log.info("保存评论成功");
                 map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
-            }else{
-                map.put(SysConstant.RESP_CODE,SysEnum.ResultCode.ERROR.getCode());
-                map.put(SysConstant.RESP_MSG,SysEnum.ResultMsg.COMMENT_SAVE_ERROR.getMsg());
+            } else {
+                map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
+                map.put(SysConstant.RESP_MSG, SysEnum.ResultMsg.COMMENT_SAVE_ERROR.getMsg());
             }
-        }else{
-            map.put(SysConstant.RESP_CODE,SysEnum.ResultCode.OK.getCode());
-            map.put(SysConstant.RESP_MSG,SysEnum.ResultMsg.ISSUE_NOT_FOUND);
+        } else {
+            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
+            map.put(SysConstant.RESP_MSG, SysEnum.ResultMsg.ISSUE_NOT_FOUND);
         }
         return map;
     }
@@ -58,23 +58,15 @@ public class CommentServiceImp implements CommentService {
     @Transactional
     @Override
     public Map<String, Object> getComment(Long commentId) {
-
         Map<String, Object> map = new HashMap<>();
-        try {
-            Comment comment = (Comment) commentDao.get(Comment.class, commentId);
-            if (comment == null) {
-                log.info("评论被删除或评论不存在");
-                map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
-                map.put(SysConstant.RESP_MSG, SysEnum.ResultMsg.COMMENT_NOT_FOUND.getMsg());
-            } else {
-                map.put(SysConstant.RESP_DATA, comment);
-                map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info("获取评论发生异常");
+        Comment comment = (Comment) commentDao.get(Comment.class, commentId);
+        if (comment == null) {
+            log.info("评论被删除或评论不存在");
             map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.ERROR.getCode());
             map.put(SysConstant.RESP_MSG, SysEnum.ResultMsg.COMMENT_NOT_FOUND.getMsg());
+        } else {
+            map.put(SysConstant.RESP_DATA, comment);
+            map.put(SysConstant.RESP_CODE, SysEnum.ResultCode.OK.getCode());
         }
         return map;
     }

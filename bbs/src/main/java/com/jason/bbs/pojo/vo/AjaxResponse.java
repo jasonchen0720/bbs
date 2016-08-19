@@ -133,4 +133,7 @@ public class AjaxResponse implements Serializable {
     public AjaxResponse tips(BindingResult bindingResult) {
         throw new UnsupportedOperationException("unsupported operation");
     }
+
+    public static void main(String[] args) {
+    }
 }

@@ -29,7 +29,7 @@ public class Issue {
     @Column(name = "column_belong")
     private String columnBelong;
 
-    @OneToMany(mappedBy = "issue", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "issue", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Comment> comments;
 
     @Column(name = "issue_time")

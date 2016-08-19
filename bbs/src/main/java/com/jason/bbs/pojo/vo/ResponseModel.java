@@ -1,9 +1,11 @@
 package com.jason.bbs.pojo.vo;
 
+import java.io.Serializable;
+
 /**
  * Created by jason on 2016/8/16.
  */
-public class ResponseModel {
+public class ResponseModel /*implements Serializable*/{
 
     private int code;
 
@@ -11,23 +13,40 @@ public class ResponseModel {
 
     private Object data;
 
-    public ResponseModel(){
+    public ResponseModel() {
 
     }
 
-    public ResponseModel(int code,String message){
+    public ResponseModel(int code) {
 
+        this.code = code;
+    }
+
+    public ResponseModel(int code, String message) {
         this.code = code;
         this.message = message;
     }
 
-    public ResponseModel(int code, String message, Object data){
-
+    public ResponseModel(int code, String message, Object data) {
         this.code = code;
         this.message = message;
         this.data = data;
 
     }
+
+    public static ResponseModel ok() {
+        return new ResponseModel(0);
+    }
+
+    public static ResponseModel error() {
+        return new ResponseModel(-1);
+    }
+
+    public ResponseModel message(String message) {
+        this.message = message;
+        return this;
+    }
+
     public int getCode() {
         return code;
     }
