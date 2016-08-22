@@ -121,7 +121,7 @@
                 success: function (data) {
                     if (data.code == 0) {
                         window.location.href = "/issue/issueDetail/${issue.issueId}";
-                        alert(data.message);
+                        //alert(data.message);
                     } else {
                         alert(data.message);
                     }
@@ -140,7 +140,7 @@
                 data: sendData,
                 success: function (data) {
                     if (data.code == 0) {
-                        alert(data.message);
+                        //alert(data.message);
                     } else {
                         alert(data.message);
                     }

@@ -1,6 +1,6 @@
 package com.jason.bbs.service.imp;
 
-import com.jason.bbs.common.SysEnum;
+import com.jason.bbs.common.SysEnum.ResultMsg;
 import com.jason.bbs.dao.interf.CommentDao;
 import com.jason.bbs.dao.interf.IssueDao;
 import com.jason.bbs.exception.BaseSystemException;
@@ -39,13 +39,13 @@ public class CommentServiceImp implements CommentService {
             comment = (Comment) commentDao.save(comment);
             if (comment != null) {
                 log.info("保存评论成功");
-                return CommonBo.success().message(SysEnum.ResultMsg.COMMENT_SAVE_OK.getMsg());
+                return CommonBo.success().message(ResultMsg.COMMENT_SAVE_OK.getMsg());
             } else {
-                return CommonBo.success().message(SysEnum.ResultMsg.COMMENT_SAVE_ERROR.getMsg());
+                return CommonBo.success().message(ResultMsg.COMMENT_SAVE_ERROR.getMsg());
             }
         } else {
             log.error("评论的帖子不存在");
-            return CommonBo.success().message(SysEnum.ResultMsg.ISSUE_NOT_FOUND.getMsg());
+            return CommonBo.success().message(ResultMsg.ISSUE_NOT_FOUND.getMsg());
         }
     }
 

@@ -123,7 +123,7 @@
                 success: function (data) {
                     if (data.code == 0) {
                         window.location.href = "/issue/issues/${columnBelong}";
-                        alert(data.message);
+                        //alert(data.message);
                     } else {
                         alert(data.message);
                     }
